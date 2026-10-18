@@ -1,0 +1,22 @@
+{
+  "manifest_version": 2,
+  "name": "outlook-web-auth",
+  "version": "1.0.0",
+  "description": "Graph tokens from Outlook on the web for a tenant without an app registration: a pasted token, or a headless browser harvest every 30 minutes.",
+  "zone": "owner",
+  "capabilities": {
+    "owner_hooks": {
+      "verbs": [],
+      "auth_sources": [
+        {"name": "manual-token", "kind": "graph", "module": "auth_sources.py",
+         "function": "manual_token"}
+      ],
+      "cron": [
+        {"label": "harvest", "cron": "*/30 * * * *",
+         "command": ["python3", "{plugin_dir}/outlook_web.py", "refresh"], "timeout_seconds": 600}
+      ]
+    },
+    "network": {"domains": ["outlook.office365.com", "login.microsoftonline.com"], "local": []}
+  },
+  "state_dirs": ["state"]
+}

@@ -1,0 +1,8 @@
+state/
+.env.secrets
+__pycache__/
+*.pyc
+*.pyo
+*.log
+.pytest_cache/
+.DS_Store
