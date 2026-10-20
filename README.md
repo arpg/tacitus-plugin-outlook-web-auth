@@ -1,4 +1,4 @@
-# ea-plugin-outlook-web-auth
+# tacitus-plugin-outlook-web-auth
 
 Graph tokens from Outlook on the web, for a Microsoft 365 tenant that
 gives the EA no app registration. An owner-zone plugin for
@@ -121,7 +121,7 @@ and normalizes the response keys.
 As the owner, on the EA host:
 
 ```bash
-python3 /opt/ea-system/scripts/ea-plugin.py install git:https://github.com/crheckman/ea-plugin-outlook-web-auth.git@v1.0.0
+python3 /opt/ea-system/scripts/ea-plugin.py install git:https://github.com/arpg/tacitus-plugin-outlook-web-auth.git@v1.0.0
 ```
 
 It prints the capabilities and stops: an owner-zone plugin always needs
