@@ -1,9 +1,16 @@
 # ea-plugin-outlook-web-auth
 
 Graph tokens from Outlook on the web, for a Microsoft 365 tenant that
-gives the EA no app registration. An owner-zone plugin for EA core
-(`docs/plugins.md` in ea-system): its code runs as the owner, with the
-owner's tokens, from the owner-private plugins directory.
+gives the EA no app registration. An owner-zone plugin for
+[Tacitus](https://github.com/arpg/tacitus) (`docs/plugins.md` there): its
+code runs as the owner, with the owner's tokens, from the owner-private
+plugins directory.
+
+Use it only where your organization's rules allow it. The harvest reads
+the token Outlook on the web already holds for your own signed-in
+session; it does not get around sign-in or multi-factor authentication,
+but it does give the EA mail and calendar access that your IT department
+did not register an app for.
 
 It declares two owner hooks:
 
@@ -12,7 +19,7 @@ It declares two owner hooks:
 | auth source `manual-token` (`auth_sources.py:manual_token`, kind `graph`) | Returns the token in `~/.ea/auth/manual_token.txt` when it is for Microsoft Graph or the Outlook REST API and has more than a minute left. `graph_client.authenticate` asks it after the MSAL cache and before any interactive sign-in. |
 | cron `harvest` (`*/30 * * * *`) | A headless browser harvest that rewrites that file with a fresh token (`outlook_web.py refresh`), through `ea-plugin.py run-owner outlook-web-auth harvest`. Add it only on an install that uses the harvest. |
 
-EA core keeps MSAL silent refresh, the confidential client and the
+Tacitus keeps MSAL silent refresh, the confidential client and the
 public-client device-code and interactive flows. With an app
 registration, use those (SETUP.md Step 5); this plugin is the path when IT
 will not grant one, and a bootstrap for a short outage.
@@ -114,7 +121,7 @@ and normalizes the response keys.
 As the owner, on the EA host:
 
 ```bash
-python3 /opt/ea-system/scripts/ea-plugin.py install git:git@github.com:<owner>/ea-plugin-outlook-web-auth.git
+python3 /opt/ea-system/scripts/ea-plugin.py install git:https://github.com/crheckman/ea-plugin-outlook-web-auth.git@v1.0.0
 ```
 
 It prints the capabilities and stops: an owner-zone plugin always needs
@@ -122,7 +129,7 @@ consent. Read them, then run it again with `--accept-capabilities`. On a
 harvest install, add the cron line (above). The auth source needs no
 restart: each owner process reads the lock when it authenticates.
 
-Updates: push, then `ea-plugin.py update outlook-web-auth`.
+Updates: `ea-plugin.py update outlook-web-auth --ref <tag>`.
 
 ## Files
 
@@ -187,20 +194,36 @@ only through owner_trust's checked descriptors, from a private copy.
 
 ## Moving from the core's copy
 
-Earlier EA core releases carried this code (`graph_client.get_manual_token`,
-step 3 of `authenticate`, and `token_refresh.py` with `--login`, `--check`
-and `--force`). The token file and the browser profile keep their paths,
-so nothing moves. `token_refresh.py --login` is now `outlook_web.py login`,
-`--check` is `check`, and the `*/30` crontab line that ran
-`token_refresh.py` becomes the one `ea-plugin.py cron-lines` prints.
+The pre-release line (v1.2.0 and earlier) carried this code in the core
+(`graph_client.get_manual_token`, step 3 of `authenticate`, and
+`token_refresh.py` with `--login`, `--check` and `--force`). Tacitus
+v0.1.0 removed it. An install on `GRAPH_AUTH_METHOD=playwright` or a
+pasted token must install this plugin when it upgrades, or Outlook access
+stops when the current token expires:
+
+1. Upgrade Tacitus (INSTALL.md, "Upgrade").
+2. Install this plugin (above) and accept its capabilities.
+3. In the owner's crontab, replace the `*/30` line that ran
+   `token_refresh.py` with the line `ea-plugin.py cron-lines` prints for
+   `outlook-web-auth`.
+4. Run `outlook_web.py check`, then `scripts/ea-doctor.py`.
+
+The token file and the browser profile keep their paths, so nothing else
+moves. `token_refresh.py --login` is now `outlook_web.py login`, and
+`--check` is `check`.
 
 ## Tests
 
 ```bash
-EA_CORE_DIR=/path/to/ea-system python3 -m pytest -q -p no:cacheprovider tests
+EA_CORE_DIR=/path/to/tacitus python3 -m pytest -q -p no:cacheprovider tests
 ```
 
 The tests use made-up tokens, a scratch EA tree and a scratch
 owner-private directory; `test_install.py` installs this working tree
 through EA core's `plugin_install` and has `graph_client.authenticate`
 take the token from it.
+
+## License
+
+AGPL-3.0-only, the license of Tacitus, which this code came from. See
+`LICENSE`.
