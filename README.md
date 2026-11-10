@@ -206,7 +206,9 @@ stops when the current token expires:
 3. In the owner's crontab, replace the `*/30` line that ran
    `token_refresh.py` with the line `ea-plugin.py cron-lines` prints for
    `outlook-web-auth`.
-4. Run `outlook_web.py check`, then `scripts/ea-doctor.py`.
+4. Run `EA_CORE_DIR=/opt/ea-system python3 ~/.ea-private/plugins/outlook-web-auth/outlook_web.py check`
+   (the script finds the core only through `EA_CORE_DIR`; the cron line
+   sets it, a shell does not), then `scripts/ea-doctor.py`.
 
 The token file and the browser profile keep their paths, so nothing else
 moves. `token_refresh.py --login` is now `outlook_web.py login`, and
